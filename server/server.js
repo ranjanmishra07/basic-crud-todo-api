@@ -19,8 +19,14 @@ app.post('/todos',(req,res)=>{
   })
 });
 
-
-
+// for get routes
+app.get('/todos',(req,res)=>{
+  todos.find().then((docs)=>{
+    res.send({docs})
+  },(err)=>{
+    res.status(400).send(e);
+  });
+});
 
 app.listen(3000,()=>{
   console.log('server up at 3000');
