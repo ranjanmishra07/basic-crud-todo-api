@@ -1,12 +1,15 @@
 const expect=require('expect');
 const request=require('supertest');
+const {ObjectId}=require('mongodb');
 
 var {todos}=require('./../models/todos');
 var {app}=require('./../server');
 
 var todoDummy=[{
+  _id:ObjectId(),
   text:'first test todo '
 },{
+  _id:ObjectId(),
   text:'second test todo'
 }];
 
@@ -67,4 +70,18 @@ describe('get /todos',()=>{
     .expect(200)
     .end(done)
   })
+});
+describe('get /todos/:id',()=>{
+ it('should return get for particular id',(done)=>{
+   request(app)
+   .get(`/todos/${todoDummy[0]._id.toHexString()}`)
+   .expect(200)
+   .expect((res)=>{
+     expect(res.body.todoDummy.text).toBe(todoDummy[0].text);
+   })
+   .end(done())
+ });
+
+ 
+
 });

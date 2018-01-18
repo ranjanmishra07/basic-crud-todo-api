@@ -5,6 +5,8 @@ var {mongoose}=require('./db/mongoose');
 var {todos}=require('./models/todos');
 var {ObjectId}=require('mongodb');
 const app=express();
+const port=process.env.PORT || 3000;
+
 app.use(bodyParser.json());
 
 //for posting routes todo
@@ -37,7 +39,7 @@ app.get('/todos/:id',(req,res)=>{
   }
   todos.findById(id).then((docs)=>{
     if(docs){
-      res.send(todos);
+      res.send(docs);
     }else{
       res.status(404).send();
     }
@@ -47,8 +49,25 @@ app.get('/todos/:id',(req,res)=>{
 
 })
 
-app.listen(3000,()=>{
-  console.log('server up at 3000');
+app.delete('/todos/:id',(req,res)=>{
+  var id=req.params.id;
+  if(!ObjectId.isValid(id)){
+    return res.status(404).send();
+  }
+  todos.findByIdAndRemove(id).then((docs)=>{
+    if(docs){
+      res.send(docs);
+
+    }else{res.status(404).send()}
+  }).catch((e)=>{
+    res.status(400).send();
+  })
+})
+
+app.listen(port,()=>{
+  console.log(`started up at ${port}`);
 });
+
+
 
 module.exports={app};
