@@ -3,7 +3,7 @@ const bodyParser=require('body-parser');
 
 var {mongoose}=require('./db/mongoose');
 var {todos}=require('./models/todos');
-
+var {ObjectId}=require('mongodb');
 const app=express();
 app.use(bodyParser.json());
 
@@ -27,6 +27,25 @@ app.get('/todos',(req,res)=>{
     res.status(400).send(e);
   });
 });
+
+// for get routes by ids
+app.get('/todos/:id',(req,res)=>{
+  var id=req.params.id;
+  if(!ObjectId.isValid(id)){
+    return res.status(404).send('id was not found')
+
+  }
+  todos.findById(id).then((docs)=>{
+    if(docs){
+      res.send(todos);
+    }else{
+      res.status(404).send();
+    }
+  }).catch(()=>{
+    rs.status(400).send()
+  })
+
+})
 
 app.listen(3000,()=>{
   console.log('server up at 3000');
