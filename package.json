@@ -4,20 +4,24 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start":"node server/server.js",
+    "start": "node server/server.js",
     "test": "mocha server/**/*.test.js",
     "test-watch": "nodemon --exec \"npm test\" "
   },
-  "engines":{
-    "node":"8.9.4"
+  "engines": {
+    "node": "8.9.4"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
+    "jsonwebtoken": "^8.1.0",
+    "lodash": "^4.17.4",
     "mongodb": "^2.2.34",
-    "mongoose": "^4.5.9"
+    "mongoose": "^4.5.9",
+    "validator": "^9.2.0"
   },
   "devDependencies": {
     "expect": "^1.20.2",
