@@ -97,29 +97,13 @@ app.patch('/todos/:id',(req,res)=>{
 app.post('/user', (req, res) => {
   var body = _.pick(req.body, ['email', 'password']);
   var user = new User(body);
-  var access='auth';
-  var token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString();
-
-  user.tokens.push({access, token});
   user.save().then(() => {
-    // var userObject=user.toObject();
-    // return _.pick(userObject,['_id','email']);
-
-   res.header('x-auth',token).json({
-     success:true,
-     message:'user registered successully You can see the details of registration',
-
-     user:{
-       id:user._id,
-       email:user.email
-     }
-   });
-  // res.send(user.toJSON());
-
-
-  }).catch((e) => {
-    res.status(400).send(e);
-  })
+      return user.generateAuthToken();
+    }).then((token) => {
+      res.header('x-auth', token).send(user);
+    }).catch((e) => {
+      res.status(400).send(e);
+    })
 });
 
 
@@ -159,6 +143,16 @@ app.get('/user/profile',authenticate,(req,res)=>{
   // });
 
 });
+
+app.post('/user/login',(req,res)=>{
+  var body = _.pick(req.body, ['email', 'password']);
+
+  User.findByCredentials(body.email,body.password).then((user)=>{
+    return user.generateAuthToken().then((token) => {
+      res.header('x-auth', token).send(user);
+    });
+  }).catch((e)=>{res.status(400).send()});
+})
 
 app.listen(port,()=>{
   console.log(`started up at ${port}`);

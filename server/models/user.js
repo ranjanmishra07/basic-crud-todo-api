@@ -53,25 +53,25 @@ var UserSchema=new mongoose.Schema({
 
 
 
-// module.exports.toJSON=function toJSON(){
-//   var user=this;
-//   var userObject=user.toObject();
-//   return _.pick(userObject,['_id','email']);
-// }
+UserSchema.methods.toJSON=function toJSON(){
+  var user=this;
+  var userObject=user.toObject();
+  return _.pick(userObject,['_id','email']);
+}
 
-// UserSchema.methods.generateAuthToken = function () {
-//   var user = this;
-//   var access = 'auth';
-//   var token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString();
-//
-//   user.tokens.push({access, token});
-//
-//   return user.save().then(() => {
-//     return token;
-//   });
-// };
+UserSchema.methods.generateAuthToken = function () {
+  var user = this;
+  var access = 'auth';
+  var token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString();
 
-// module.exports.findByToken=function(token){
+  user.tokens.push({access, token});
+
+  return user.save().then(() => {
+    return token;
+  });
+};
+
+// UserSchema.statics.findByToken=function(token){
 //   var User=this;
 //   var decoded;
 //   try{
@@ -86,6 +86,27 @@ var UserSchema=new mongoose.Schema({
 //   })
 // }
 
+UserSchema.statics.findByCredentials=function(email,password){
+   var User=this;
+   return User.findOne({email}).then((user)=>{
+     if(!user){
+       return Promise.reject();
+     }
+
+     return new Promise((resolve,reject)=>{
+       // Load hash from your password DB.
+      bcrypt.compare(password,user.password, function(err, res) {
+        // res === true
+        if(res){
+          resolve(user);
+        }
+        else{
+          reject();
+        }
+     });
+  })
+})
+}
 
 //hashing of password
 UserSchema.pre('save', function(next) {
