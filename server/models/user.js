@@ -8,7 +8,7 @@ var genders='male female'.split(' ');
 
 var UserSchema=new mongoose.Schema({
   name:{
-    // required:true,
+    required:true,
     type:String,
     minlength:4,
     trim:true
@@ -28,13 +28,17 @@ var UserSchema=new mongoose.Schema({
     required:true,
     minlength:4
   },
-  mobileNumber:{
-    type:String,
-    // required:true,
-    unique:true,
-    minlength:10,
-    maxlength:10
+    phone: {
+       type: String,
+       validate: {
+         validator: function(v) {
+           return /\d{3}\d{3}\d{4}/.test(v);
+         },
+         message: '{VALUE} is not a valid phone number!'
+       },
+       required: [true, 'User phone number required']
   },gender: {
+    required:true,
     type: String,
      enum: genders
    },

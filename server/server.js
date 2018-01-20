@@ -4,7 +4,7 @@ const _=require('lodash');
 const jwt=require('jsonwebtoken');
 
 var {mongoose}=require('./db/mongoose');
-var {todos}=require('./models/todos');
+// var {todos}=require('./models/todos');
 var {User}=require('./models/user');
 var {ObjectId}=require('mongodb');
 var {authenticate}=require('./middleware/authenticate');
@@ -14,88 +14,11 @@ const port=process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
-//for posting routes todo
-app.post('/todos',(req,res)=>{
-  var todo=new todos({
-    text:req.body.text
-  });
-  todo.save().then((docs)=>{
-    res.send(docs);
-  },(err)=>{
-    res.status(400).send(err);
-  })
-});
-
-// for get routes
-app.get('/todos',(req,res)=>{
-  todos.find().then((docs)=>{
-    res.send({docs})
-  },(err)=>{
-    res.status(400).send(e);
-  });
-});
-
-// for get routes by ids
-app.get('/todos/:id',(req,res)=>{
-  var id=req.params.id;
-  if(!ObjectId.isValid(id)){
-    return res.status(404).send('id was not found')
-
-  }
-  todos.findById(id).then((docs)=>{
-    if(docs){
-      res.send(docs);
-    }else{
-      res.status(404).send();
-    }
-  }).catch(()=>{
-    rs.status(400).send()
-  })
-
-})
-
-app.delete('/todos/:id',(req,res)=>{
-  var id=req.params.id;
-  if(!ObjectId.isValid(id)){
-    return res.status(404).send();
-  }
-  todos.findByIdAndRemove(id).then((docs)=>{
-    if(docs){
-      res.send(docs);
-
-    }else{res.status(404).send()}
-  }).catch((e)=>{
-    res.status(400).send();
-  })
-})
-app.patch('/todos/:id',(req,res)=>{
-  var id=req.params.id;
-  var body=_.pick(req.body,['text','completed']);
-  if(!ObjectId.isValid(id)){
-    return res.status(404).send();
-  }
-  if(_.isBoolean(body.completed) && body.completed){
-    body.completedAt=new Date().getTime();
-  }else{
-    body.completed=false;
-    body.completedAt=null;
-  }
-
-  todos.findByIdAndUpdate(id,{$set:body},{new:true}).then((docs)=>{
-    if(docs){
-      res.send({docs})
-    }else{
-      res.status(404).send();
-    }
-  }).catch((err)=>{
-    res.status(400).send()
-  })
-})
 
 
-//user post routes
+//user post route for registering user
 app.post('/user', (req, res) => {
-  var body = _.pick(req.body, ['email', 'password']);
+  var body = _.pick(req.body, ['name','email', 'password','phone','gender']);
   var user = new User(body);
   user.save().then(() => {
       return user.generateAuthToken();
@@ -106,44 +29,41 @@ app.post('/user', (req, res) => {
     })
 });
 
+//for viewing user profile
+app.get('/user/me',authenticate,(req,res)=>{
+  res.send(req.user);
+})
+// 8521622565
 
-//for getting profiles
-app.get('/user/profile',authenticate,(req,res)=>{
-    res.json(req.user);
-  // var token =req.header('x-auth');
-  //
-  // var decoded;
-  // try{
-  //   decoded=jwt.verify(token,'abc123');
-  // }catch(e){
-  //    return res.status(401).send(e);
-  // }
-  //     User.findOne({
-  //   // 'tokens[0].token':token
-  //      "tokens.access":"auth",
-  //      "tokens.token":token
-  //     }).then((user)=>{
-  //   if(!user){
-  //        return res.status(404).send('user not found');
-  //       // return Promise.reject();
-  //
-  //   }
-  //   // res.send(user);
-  //   res.json({
-  //     success:true,
-  //     message:'you are authenticated and can visit your profile',
-  //
-  //     user:{
-  //       id:user._id,
-  //       email:user.email
-  //     }
-  //   });
-  // }).catch((e)=> {
-  //   res.status(401).send(e);
-  // });
+//for getting profiles and updating
+// set headers as x-auth and copy x-auth token from headers while posting/registering a new user
+// then you will be able to access the delete option once authenticated
+app.patch('/user/profile',authenticate,(req,res)=>{
+      var body=_.pick(req.body,['name','phone']);
+      User.findOneAndUpdate(req.user.id,req.body,{new:true}).then((user)=>{
+        if(user){
+          res.json({
+              success:true,
+              message:'your profile is successully updated',
+
+              user:{
+                id:user._id,
+                email:user.email,
+                name:user.name,
+                phone:user.phone
+              }
+            });
+        }else{
+          res.status(404).send();
+        }
+      }).catch((err)=>{
+        res.status(400).send();
+      });
 
 });
 
+
+//for logging in the user after succesfful registration with valid x-auth token
 app.post('/user/login',(req,res)=>{
   var body = _.pick(req.body, ['email', 'password']);
 
@@ -153,6 +73,19 @@ app.post('/user/login',(req,res)=>{
     });
   }).catch((e)=>{res.status(400).send()});
 })
+
+//for deleting the profile .set headers as x-auth and copy x-auth token from headers while posting/registering a new user
+// then you will be able to access the delete option once authenticated
+app.delete('/user/:id',authenticate,(req,res)=>{
+
+  User.remove({_id:req.params.id}).then((user)=>{
+    res.send('profile deleted successfully');
+  }).catch((e)=>{
+    res.status(400).send(e)
+  })
+})
+
+
 
 app.listen(port,()=>{
   console.log(`started up at ${port}`);

@@ -1,6 +1,6 @@
 const {User}=require('./../models/user');
 const jwt=require('jsonwebtoken');
-
+//middleware function for accesing profile,updating proffile,logging in user
 var authenticate=(req,res,next)=>{
   var token =req.header('x-auth');
 
@@ -28,7 +28,10 @@ var authenticate=(req,res,next)=>{
 
       user:{
         id:user._id,
-        email:user.email
+        name:user.name,
+        email:user.email,
+        phone:user.phone,
+        gender:user.gender
       }
     };
     req.token=token;

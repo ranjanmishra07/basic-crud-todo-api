@@ -28,5 +28,4 @@ MongoClient.connect('mongodb://localhost:27017/todo',(err,db)=>{
 db.collection('todo1').deleteMany({name:'rajan'}).then((res)=>{
   console.log(res);
 });
-
 });
